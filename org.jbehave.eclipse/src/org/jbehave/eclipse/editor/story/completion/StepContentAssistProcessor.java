@@ -1,5 +1,7 @@
 package org.jbehave.eclipse.editor.story.completion;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -106,6 +108,22 @@ public class StepContentAssistProcessor implements IContentAssistProcessor {
             logger.debug("Autocompletion step start used for search: {}", stepStartUsedForSearch);
             
             List<WeightedStep> candidates = Lists.toList(jbehaveProject.getStepLocator().findCandidatesStartingWith(stepStartUsedForSearch));
+            File stepsDir = new File("jbehave\\steps");
+            if(!stepsDir.exists()) {
+            	logger.debug("Creating dir {}",stepsDir.getAbsolutePath());
+            	stepsDir.mkdirs();
+            }
+            for(File stepFile:stepsDir.listFiles()) {
+            	try {
+            		WeightedStep externalStep = jbehaveProject.getStepLocator().externalStep(stepFile, stepStartUsedForSearch);
+            		if(externalStep!= null) {
+            			candidates.add(externalStep);
+            		}
+				} catch (Exception e) {
+					logger.debug("Cannot load step from file {} {}", stepFile.getAbsolutePath(),e.getMessage());
+				}
+            }
+            
             Collections.sort(candidates);
             logger.debug("Autocompletion found #{}", candidates.size());
             

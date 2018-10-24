@@ -2,11 +2,18 @@ package org.jbehave.eclipse.editor.step;
 
 import static fj.data.List.iterableList;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
+import org.jbehave.core.model.StepPattern;
+import org.jbehave.core.steps.StepType;
 import org.jbehave.eclipse.Activator;
 import org.jbehave.eclipse.JBehaveProject;
 import org.jbehave.eclipse.editor.JDTUtils;
@@ -185,6 +192,35 @@ public class StepLocator {
 			throws JavaModelException {
 		log.debug("Traversing steps with: {}", visitor.getClass());
 		project.traverseSteps(visitor);
+	}
+	
+	public WeightedStep externalStep(File stepFile, String stepName) throws Exception {
+		Properties properties = new Properties();
+		FileInputStream inStream = new FileInputStream(stepFile);
+		try {
+			properties.load(inStream);
+		} finally {
+			inStream.close();
+		}
+		LocalizedStepSupport localizedSupport = project.getLocalizedStepSupport();
+		String parameterPrefix = project.getProjectPreferences().getParameterPrefix();
+		IMethod method = null;
+		StepType stepType = StepType.valueOf(properties.getProperty("stepType"));
+		String stepPattern = properties.getProperty("stepPattern");
+		Integer priority;
+		try {
+			priority = Integer.parseInt(properties.getProperty("priority"));
+		} catch (NumberFormatException e) {
+			priority = 0;
+		}
+		
+		final String searchedType = StepSupport.stepType(localizedSupport, stepName);
+		StepCandidate stepCandidate = new StepCandidate(localizedSupport, parameterPrefix, method, stepType, stepPattern, priority);
+		boolean sameType = stepCandidate.isTypeEqualTo(searchedType);
+		if(!sameType) {
+			return null;
+		}
+		return new WeightedStep(stepCandidate, 0);
 	}
 
 }
