@@ -25,6 +25,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.target>1.7</maven.compiler.target>
+    <maven.compiler.source>1.7</maven.compiler.source>
     <eclipse.release>luna</eclipse.release>
     <tycho.version>0.23.0</tycho.version>
     <tycho.test.jvmArgs></tycho.test.jvmArgs>

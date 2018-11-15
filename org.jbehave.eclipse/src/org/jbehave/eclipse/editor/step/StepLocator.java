@@ -2,9 +2,12 @@ package org.jbehave.eclipse.editor.step;
 
 import static fj.data.List.iterableList;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -196,11 +199,13 @@ public class StepLocator {
 	
 	public WeightedStep externalStep(File stepFile, String stepName) throws Exception {
 		Properties properties = new Properties();
-		FileInputStream inStream = new FileInputStream(stepFile);
-		try {
-			properties.load(inStream);
-		} finally {
-			inStream.close();
+		
+		try (FileInputStream fileStream = new FileInputStream(stepFile);
+				InputStreamReader streamReader = new InputStreamReader(fileStream, StandardCharsets.UTF_8);
+				BufferedReader bufferedReader = new BufferedReader(streamReader)){
+			properties.load(bufferedReader);
+		} catch(Exception e) {
+			return null;
 		}
 		LocalizedStepSupport localizedSupport = project.getLocalizedStepSupport();
 		String parameterPrefix = project.getProjectPreferences().getParameterPrefix();
